@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كل عام وانتِ بخير</title>
+    <style>
+        @font-face {
+            font-family: 'MainCustomFont';
+            src: url('font2.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SecondaryCustomFont';
+            src: url('font3.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --dark-pink: #B56576;
+            --white: #FFFFFF;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'MainCustomFont', sans-serif;
+            overflow: hidden;
+            direction: rtl;
+            text-align: right;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /*
+         * ==========================================
+         *  الحاوية الرئيسية - الحل الجذري لمشكلة الأبعاد
+         * ==========================================
+         *
+         * الفكرة: نثبت نسبة العرض للارتفاع (9:19.5) وهي نسبة
+         * الآيفون. كل شيء داخلها يُقاس بـ cqw/cqh (container query units)
+         * فيتناسب تلقائياً مهما كان الجهاز.
+         *
+         * container-type: size  ← يجعل الحاوية مرجع الـ cqw/cqh
+         */
+        .custom-phone-container {
+            position: relative;
+            /* نحتاج ارتفاع كافٍ للبدء، ثم نضبط العرض بالنسبة */
+            height: min(100vh, 100dvh);
+            /* عرض = ارتفاع × (9/19.5) — نسبة الآيفون */
+            width: calc(min(100vh, 100dvh) * (9 / 19.5));
+            /* لا يتجاوز عرض الشاشة */
+            max-width: 100vw;
+            /* إذا كانت الشاشة عريضة جداً نضبط من العرض */
+            max-height: calc(100vw * (19.5 / 9));
+            background-color: #FAFAFA;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            container-type: size; /* ← مفتاح الحل */
+        }
+
+        /* ============================================================
+         *  كل القيم من هنا فصاعداً تستخدم cqw / cqh
+         *  cqw = 1% من عرض الحاوية
+         *  cqh = 1% من ارتفاع الحاوية
+         * ============================================================ */
+
+        /* نافذة التريك الأولية */
+        .start-alert {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70cqw;
+            background: rgba(255,255,255,0.98);
+            border-radius: 4cqw;
+            text-align: center;
+            z-index: 9999;
+            box-shadow: 0 4cqw 9cqw rgba(0,0,0,0.2);
+            padding-top: 6cqw;
+            overflow: hidden;
+            font-family: 'MainCustomFont', sans-serif;
+        }
+        .alert-title {
+            color: var(--dark-pink);
+            font-weight: bold;
+            margin-bottom: 5cqw;
+            font-size: 5cqw;
+        }
+        .alert-btns { display: flex; border-top: 1px solid #ECEFF1; }
+        .alert-btn {
+            flex: 1;
+            padding: 3.5cqw;
+            cursor: pointer;
+            color: #007AFF;
+            font-weight: bold;
+            border-right: 1px solid #ECEFF1;
+            font-size: 4.5cqw;
+            transition: background 0.2s;
+            text-align: center;
+            font-family: 'MainCustomFont', sans-serif;
+        }
+        .alert-btn:last-child { border-right: none; }
+        .alert-btn:active { background: #F5F5F5; }
+
+        /* الواجهة الرئيسية */
+        .main-screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: url('main_bg.png') no-repeat center center;
+            background-size: cover;
+            transition: filter 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .blur { filter: blur(2px); pointer-events: none; }
+
+        /* البجع العلوي */
+        .top-swans {
+            width: 40cqw;
+            height: auto;
+            margin-top: 9cqh;
+            z-index: 2;
+            animation: swanFloat 4s ease-in-out infinite;
+        }
+        @keyframes swanFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-1.5cqh) scale(1.02); }
+        }
+
+        /* نصوص المعايدة */
+        .greeting-text-box {
+            text-align: center;
+            margin-top: 3cqh;
+            padding: 0 6cqw;
+            z-index: 2;
+        }
+        .greeting-main-title {
+            font-family: 'MainCustomFont', sans-serif;
+            font-size: 7cqw;
+            color: #4A3E3D;
+            margin-bottom: 2cqh;
+            font-weight: bold;
+        }
+        .greeting-story {
+            font-family: 'SecondaryCustomFont', serif;
+            font-size: 3.8cqw;
+            line-height: 1.6;
+            color: #3E3433;
+        }
+
+        /* زر البجعة السفلي */
+        .swan-trigger {
+            position: absolute;
+            bottom: 18cqh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24cqw;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1cqh;
+            z-index: 2;
+        }
+        .swan-trigger img { width: 100%; height: auto; }
+        .swan-trigger span {
+            font-family: 'MainCustomFont', sans-serif;
+            color: #4A3E3D;
+            font-weight: bold;
+            font-size: 3.5cqw;
+            white-space: nowrap;
+        }
+        .swan-trigger:active { transform: translateX(-50%) scale(1.15); }
+
+        /* منطقة السيف */
+        .action-zone {
+            position: absolute;
+            bottom: 3cqh;
+            right: 5cqw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1cqh;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .sword-img {
+            width: 13cqw;
+            height: auto;
+            animation: swordWobble 1.5s infinite ease-in-out;
+        }
+        @keyframes swordWobble {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-12deg) translateY(-3px); }
+        }
+        .zone-text {
+            font-family: 'MainCustomFont', sans-serif;
+            color: #333;
+            font-weight: bold;
+            font-size: 3cqw;
+            white-space: nowrap;
+        }
+
+        /* الطبقات المنبثقة */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none;
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* كارت الرسالة */
+        .letter-card {
+            width: 90cqw;
+            height: 72cqh;
+            background: url('card_bg.png') no-repeat center center;
+            background-size: cover;
+            border-radius: 5cqw;
+            box-shadow: 0 5cqw 11cqw rgba(0,0,0,0.2);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .letter-title-custom {
+            font-family: 'MainCustomFont', sans-serif;
+            font-size: 5.5cqw;
+            color: var(--dark-pink);
+            font-weight: bold;
+            position: absolute;
+            top: 33%;
+            right: 9cqw;
+        }
+        .letter-text-box {
+            margin-top: 51%;
+            padding: 0 8cqw;
+            font-family: 'SecondaryCustomFont', serif;
+            font-size: 4cqw;
+            line-height: 1.5;
+            color: #2b2b2b;
+            text-align: center;
+            word-break: break-word;
+        }
+        .back-btn-center {
+            background: none;
+            border: none;
+            color: var(--dark-pink);
+            font-family: 'MainCustomFont', sans-serif;
+            font-size: 3.5cqw;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 4cqh auto 0;
+            display: block;
+        }
+
+        /* ============================================================
+         *  كارت الذبح — الجزء الأساسي المُصلَح
+         * ============================================================ */
+        .slaughter-card {
+            width: 90cqw;
+            height: 75cqh;
+            background: url('slaughter_bg.png') no-repeat center center;
+            background-size: cover;
+            border-radius: 6cqw;
+            box-shadow: 0 6cqw 14cqw rgba(0,0,0,0.25);
+            padding: 5cqw;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        .slaughter-instruction {
+            font-family: 'MainCustomFont', sans-serif;
+            font-size: 4.5cqw;
+            font-weight: bold;
+            color: #4A3E3D;
+            text-align: center;
+            margin-top: 3cqh;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+            z-index: 2;
+        }
+
+        /* مسرح الخروف — نسبه 1:1 مربعة دائماً */
+        .slaughter-theater {
+            position: relative;
+            width: 70cqw;
+            height: 70cqw; /* مربع = نسبة ثابتة دائماً */
+            margin-top: 2cqh;
+            flex-shrink: 0;
+        }
+
+        /*
+         * ==========================================
+         *  منطق الخروف الجديد:
+         *  - sheep_full.png  : الخروف كامل (قبل الذبح)
+         *  - sheep_body.png  : الجسم (بعد الذبح)
+         *  - sheep_head.png  : الرأس (بعد الذبح)
+         *
+         *  الثلاثة يملؤون المسرح بالكامل (100% × 100%)
+         *  ويتمركزون في المنتصف السفلي.
+         *  هكذا لا يوجد أي px ثابتة تخرب على أجهزة مختلفة.
+         * ==========================================
+         */
+
+        /* الخروف الكامل قبل الذبح */
+        .sheep-full {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 55%;   /* 55% من عرض المسرح */
+            height: auto;
+            z-index: 2;
+            transition: opacity 0.2s;
+        }
+
+        /* الجسم بعد الذبح */
+        .sheep-body-slaughtered {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 55%;
+            height: auto;
+            z-index: 2;
+            opacity: 0;
+            transition: none;
+        }
+
+        /* الرأس بعد الذبح */
+        .sheep-head-slaughtered {
+            position: absolute;
+            bottom: 0;     /* سيتحرك بالأنيميشن */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22%;    /* أصغر من الجسم */
+            height: auto;
+            z-index: 3;
+            opacity: 0;
+            transition: none;
+        }
+
+        /* السيف في المسرح */
+        .slaughter-sword {
+            position: absolute;
+            bottom: 5%;
+            right: 5%;
+            width: 16cqw;
+            height: auto;
+            cursor: pointer;
+            z-index: 10;
+            animation: swordWobble 1.2s infinite ease-in-out;
+            transform-origin: bottom right;
+        }
+
+        /* أنيميشن ضربة السيف */
+        @keyframes swordStrike {
+            0%   { bottom: 5%;  right: 5%;  transform: scale(1)   rotate(0deg);   opacity: 1; }
+            40%  { bottom: 50%; right: 30%; transform: scale(1.2)  rotate(-45deg); opacity: 1; }
+            70%  { bottom: 50%; right: 30%; transform: scale(1.2)  rotate(-15deg); opacity: 1; }
+            100% { bottom: 5%;  right: 5%;  transform: scale(0)   rotate(0deg);   opacity: 0; }
+        }
+        .sword-attacking {
+            animation: swordStrike 0.6s forwards ease-in-out !important;
+        }
+
+        /* أنيميشن انفصال الرأس بعد الذبح */
+        @keyframes headFlyOff {
+            0%   { bottom: 50%; left: 50%; transform: translateX(-50%) rotate(0deg);   opacity: 1; }
+            30%  { bottom: 70%; left: 25%; transform: translateX(0)    rotate(-60deg); opacity: 1; }
+            60%  { bottom: 55%; left: 10%; transform: translateX(0)    rotate(-100deg); opacity: 1; }
+            100% { bottom: 30%; left: 5%;  transform: translateX(0)    rotate(-130deg); opacity: 0.9; }
+        }
+        .head-flying {
+            animation: headFlyOff 0.7s 0.3s forwards ease-out !important;
+            opacity: 0; /* يبدأ مخفياً ويظهر مع بداية الأنيميشن */
+        }
+
+        /* أنيميشن الجسم يميل */
+        @keyframes bodyTilt {
+            0%   { transform: translateX(-50%) rotate(0deg)   scale(1); }
+            100% { transform: translateX(-50%) rotate(12deg)  scale(0.95); }
+        }
+        .body-tilting {
+            animation: bodyTilt 0.5s 0.35s forwards ease-out !important;
+        }
+
+        /* صندوق نتيجة الميم */
+        .meme-result-box {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 2cqh;
+            position: absolute;
+            bottom: 8cqh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            animation: memePop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+            z-index: 15;
+        }
+        @keyframes memePop {
+            from { transform: translateX(-50%) scale(0); opacity: 0; }
+            to   { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+        .meme-pic {
+            width: 36cqw;
+            height: auto;
+            border-radius: 3cqw;
+            box-shadow: 0 2cqw 6cqw rgba(0,0,0,0.2);
+        }
+        .meme-congratulation {
+            font-family: 'SecondaryCustomFont', serif;
+            font-size: 5cqw;
+            color: #4A3E3D;
+            text-align: center;
+            text-shadow: 0 1px 2px white;
+            font-weight: bold;
+        }
+
+        .back-btn-bottom-right {
+            position: absolute;
+            bottom: 3cqh;
+            right: 4cqw;
+            background: none;
+            border: none;
+            color: #555;
+            font-family: 'MainCustomFont', sans-serif;
+            font-size: 3cqw;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="custom-phone-container">
+
+        <!-- نافذة البداية -->
+        <div id="startAlert" class="start-alert">
+            <div class="alert-title">تحبني ؟</div>
+            <div class="alert-btns">
+                <div class="alert-btn" onclick="initExperience()">اي</div>
+                <div class="alert-btn" onclick="initExperience()">اي</div>
+            </div>
+        </div>
+
+        <!-- الشاشة الرئيسية -->
+        <div id="mainScreen" class="main-screen blur">
+
+            <img src="top_swans.png" class="top-swans" alt="البجع العلوي">
+
+            <div class="greeting-text-box">
+                <div class="greeting-main-title">كل عام وأنتِ بخير</div>
+                <div class="greeting-story">
+                    العَرَبُ قَدِيمًا كَانُوا يُسَمُّونَ البِنْتَ شَدِيدَةَ الجَمَالِ وَمُنِيرَةَ الوَجْهِ وَكَامِلَةَ الأَوْصَافِ بِاسْمِ "سَلِيلَةِ الشَّمْسِ" وَهَذَا الوَصْفُ شَاعِرِيٌّ جِدًّا وَمَعْنَاهُ ابْنَةُ الشَّمْسِ وَكَأَنَّ الشَّمْسَ وَرِثَتْهَا نُورَهَا وَكَمَالَهَا وَصُعُوبَةَ الوُصُولِ لَهَا وَبِهَذَا المَثَلِ قَالَ الشَّاعِرُ العَبَّاسِيُّ أَبُو تَمَّامٍ :<br>
+                    "سَلِيلَ الشَّمْسِ أَنْتَ فَدَتْكَ نَفْسِي وَهَلْ لِسَلِيلِ شَمْسٍ مِنْ شَبِيهِ"<br>
+                    وَكَأَنَّ أَبُو تَمَّامٍ سَافَرَ لِزَمَنِنَا هَذَا وَشَافَكِ
+                </div>
+            </div>
+
+            <div class="swan-trigger" onclick="openLayer('letterUI')">
+                <img src="swan_button.png" alt="بجعة الرسالة">
+                <span>رسالة لك</span>
+            </div>
+
+            <div class="action-zone" onclick="openSlaughterPage()">
+                <img src="sword.png" class="sword-img" alt="سيف">
+                <span class="zone-text">هيا ندبح الدبيحه</span>
+            </div>
+        </div>
+
+        <!-- طبقة الرسالة -->
+        <div id="letterUI" class="overlay-screen">
+            <div class="letter-card">
+                <div class="letter-title-custom">إلى ميرا</div>
+                <div class="letter-text-box">
+                    السلام عليكم ورحمه الله وبركاته<br><br>
+اليوم يوم عرفه واكتب لك الرسالة ذي وما ادري اذا كنتي تكلميني وقتها ولا مشغولة ولكن غيبتك ذي وشغلك والله انه ما قلل من حبي لك وانه زاد اكثر واكثر ، ميرا كل يوم يمر بدونك احس الدنيا فيها كئيبة وبدون الوان وكان الشمس غابت بغيابك وزي مايقول الشاعر " ياغريبًا بالاوطانِ وانتَ سيدُها اشرق فأنك شمسُ طالَ مغرِبُها " انتي دنتي وشمسي وقمري والحياة كلها انتي والله اني احبك وفي كل يوم يزداد حبك ، مشتاق لك مره وادعي لك في كل يوم ان ربي ييسر لك امرك ويعوضك تعبك ويسعدك ويزيح همك ، اتمنى انك تكون بخير وسعيد ومرتاح للابد وتبقى معي للابد ، أحبك .                <button class="back-btn-center" onclick="closeLayer('letterUI')">عودة للرئيسية</button>
+            </div>
+        </div>
+
+        <!-- طبقة الذبح -->
+        <div id="slaughterUI" class="overlay-screen">
+            <div class="slaughter-card">
+
+                <div class="slaughter-instruction" id="slaughterInstruction">
+                    اضغط السيف عشان ندبح الدبيحه
+                </div>
+
+                <div class="slaughter-theater" id="slaughterTheater">
+
+                    <!--
+                        sheep_full.png  → الخروف كامل (قبل الذبح)
+                        sheep_body.png  → الجسم (يظهر بعد الذبح)
+                        sheep_head.png  → الرأس (يطير بعد الذبح)
+                    -->
+                    <img src="sheep_full.png"  class="sheep-full"            id="sheepFull">
+                    <img src="sheep_body.png"  class="sheep-body-slaughtered" id="sheepBody">
+                    <img src="sheep_head.png"  class="sheep-head-slaughtered" id="sheepHead">
+
+                    <img src="sword.png" class="slaughter-sword" id="theaterSword" onclick="startSlaughterAnimation()">
+                </div>
+
+                <div class="meme-result-box" id="memeResultBox">
+                    <img src="meme_selfie.png" class="meme-pic">
+                    <div class="meme-congratulation">ممببروووكك دبحتي الدبييحهه</div>
+                </div>
+
+                <button class="back-btn-bottom-right" onclick="closeSlaughterPage()">عودة للرئيسية</button>
+            </div>
+        </div>
+
+    </div>
+
+    <audio id="bgMusic"    src="background.mp3"  loop preload="auto"></audio>
+    <audio id="sheepSound" src="sheep_sound.mp3"  preload="auto"></audio>
+
+    <script>
+        const bgAudio   = document.getElementById('bgMusic');
+        const sheepAudio = document.getElementById('sheepSound');
+
+        function initExperience() {
+            document.getElementById('startAlert').style.display = 'none';
+            document.getElementById('mainScreen').classList.remove('blur');
+            bgAudio.currentTime = 0;
+            bgAudio.play().catch(e => console.log("خطأ تشغيل تلقائي", e));
+        }
+
+        function openLayer(id) {
+            document.getElementById(id).style.display = 'flex';
+            document.getElementById('mainScreen').classList.add('blur');
+        }
+
+        function closeLayer(id) {
+            document.getElementById(id).style.display = 'none';
+            document.getElementById('mainScreen').classList.remove('blur');
+        }
+
+        function openSlaughterPage() {
+            openLayer('slaughterUI');
+
+            /* إعادة تهيئة كاملة لمسرح الخروف */
+            const full  = document.getElementById('sheepFull');
+            const body  = document.getElementById('sheepBody');
+            const head  = document.getElementById('sheepHead');
+            const sword = document.getElementById('theaterSword');
+
+            /* أزل كل الكلاسات المؤقتة */
+            sword.classList.remove('sword-attacking');
+            head.classList.remove('head-flying');
+            body.classList.remove('body-tilting');
+
+            /* أظهر الخروف الكامل وأخفِ قطعتي الذبح */
+            full.style.opacity  = '1';
+            full.style.display  = 'block';
+            body.style.opacity  = '0';
+            body.style.display  = 'block';
+            head.style.opacity  = '0';
+            head.style.display  = 'block';
+
+            sword.style.display = 'block';
+            sword.style.opacity = '1';
+
+            document.getElementById('memeResultBox').style.display  = 'none';
+            document.getElementById('slaughterInstruction').style.display = 'block';
+
+            bgAudio.pause();
+        }
+
+        function closeSlaughterPage() {
+            closeLayer('slaughterUI');
+            sheepAudio.pause();
+            sheepAudio.currentTime = 0;
+            bgAudio.currentTime = 0;
+            bgAudio.play().catch(e => console.log("خطأ إعادة تشغيل الأغنية"));
+        }
+
+        function startSlaughterAnimation() {
+            const sword = document.getElementById('theaterSword');
+            const full  = document.getElementById('sheepFull');
+            const body  = document.getElementById('sheepBody');
+            const head  = document.getElementById('sheepHead');
+            const memeBox   = document.getElementById('memeResultBox');
+            const instruction = document.getElementById('slaughterInstruction');
+
+            /* 1. السيف يتحرك */
+            sword.classList.add('sword-attacking');
+
+            /* 2. بعد 300ms: الصوت + الخروف ينقسم */
+            setTimeout(() => {
+                sheepAudio.currentTime = 0;
+                sheepAudio.play().catch(e => console.log("صوت الخروف", e));
+
+                /* أخفِ الخروف الكامل */
+                full.style.opacity = '0';
+
+                /* أظهر الجسم والرأس وشغّل أنيميشن الانفصال */
+                body.style.opacity = '1';
+                body.classList.add('body-tilting');
+
+                head.style.display = 'block';
+                head.classList.add('head-flying');
+
+            }, 300);
+
+            /* 3. بعد 900ms: أخفِ السيف والتعليمات وأظهر النتيجة */
+            setTimeout(() => {
+                sword.style.display = 'none';
+                instruction.style.display = 'none';
+                memeBox.style.display = 'flex';
+            }, 900);
+        }
+    </script>
+</body>
+</html>
